@@ -34,3 +34,4 @@ go run main.go
 
 ## Step 5
 Write to your bot "@your_bot hello"
+Also possible to use "hi", "Hi", "hello", "Hello", "Howdy", "Wassup", "Hey", "Привет", "Здравствуйте"

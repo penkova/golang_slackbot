@@ -12,9 +12,11 @@ import (
 var (
 	BotKey        Token
 	SlackClient   *slack.Client
-	ChannelInfo   *slack.ChannelInfoEvent
+	channelInfo   *slack.Channel
 	connectedUser *slack.UserDetails
 	rtm           *slack.RTM
+im *slack.IM
+	info slack.Info
 	welcPref      = []string{"hi", "Hi", "hello", "Hello", "Howdy", "Wassup", "Hey", "Привет", "Здравствуйте"}
 )
 
@@ -50,21 +52,13 @@ func Run() int {
 		select {
 		case msg := <-rtm.IncomingEvents:
 			switch ev := msg.Data.(type) {
-
-			//ConnectedEvent используется, когда мы подключаемся к Slack
 			case *slack.ConnectedEvent:
 				connectedUser = ev.Info.User
 				log.Printf("[INFO] Connected: user_id=%s name=%s \n", connectedUser.ID, connectedUser.Name)
-
-			//HelloEvent представляет событие hello
 			case *slack.HelloEvent:
 				log.Print("Hello Event")
-
-			//MessageEvent представляет Slack Message (используется как тип события для входящего сообщения)
 			case *slack.MessageEvent:
 				handleMessageEvent(ev)
-
-			//InvalidAuthEvent используется в случае, если мы не можем даже аутентифицироваться с помощью API
 			case *slack.InvalidAuthEvent:
 				log.Print("Invalid credentials")
 				return 1
@@ -74,27 +68,26 @@ func Run() int {
 }
 
 func handleMessageEvent(ev *slack.MessageEvent) {
-	channelInfo, err := SlackClient.GetChannelInfo(ev.Channel)
-	if err != nil {
-		//log.Fatalln(err)
-	}
+	ourChannel := ev.Channel
 
-	fmt.Println("chanel info", channelInfo)
-	fmt.Println("chanel info 1", ev.Channel)
-
-	//написать проверку в каком канале нахожусь
-	addReactionBotToClientMessage(ev)
-
-}
-
-func addReactionBotToClientMessage(ev *slack.MessageEvent) {
 	botId := connectedUser.ID
 	receivedText := ev.Text
 	checkPrefBot := strings.HasPrefix(receivedText, "<@"+botId+">")
+//
+	_, _, channelID, err := SlackClient.OpenIMChannel(ev.User)
+	if err != nil {
+		fmt.Printf("%s\n", err)
+	}
 
-	if checkPrefBot == true {
+	if ourChannel == channelID{
 		if receivedText != "" && checkWelcPref(receivedText, ev) != true {
 			rtm.SendMessage(rtm.NewOutgoingMessage("I'm sorry. I don't know it. I`m your friend. I can say \"Hello\" for you.", ev.Channel))
+		}
+	} else {
+		if checkPrefBot == true {
+			if receivedText != "" && checkWelcPref(receivedText, ev) != true {
+				rtm.SendMessage(rtm.NewOutgoingMessage("I'm sorry. I don't know it. I`m your friend. I can say \"Hello\" for you.", ev.Channel))
+			}
 		}
 	}
 }
