@@ -33,5 +33,8 @@ go run main.go
 ```
 
 ## Step 5
-Write to your bot "@your_bot hello"
+Write to your bot "@your_bot hello".
+If you write to bot in private messages you don`t need to use "@your_bot".
+Just write to him and he will understand you! :)
+
 Also possible to use "hi", "Hi", "hello", "Hello", "Howdy", "Wassup", "Hey", "Привет", "Здравствуйте"
